@@ -4,11 +4,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.hrmoviesapp.domain.MovieRepository
 import com.example.hrmoviesapp.domain.MovieUiState
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class MovieViewModel(
@@ -22,26 +26,25 @@ class MovieViewModel(
 
     init {
         observeSearch()
-        viewModelScope.launch {
-            searchQuery.value = ""
-        }
+        searchQuery.update { "" }
+//        viewModelScope.launch {
+//            fetchMovies("")
+//        }
     }
 
     fun onSearchQueryChanged(query: String) {
-        viewModelScope.launch {
-            searchQuery.value = query
-        }
+        searchQuery.update { query }
     }
 
+    @OptIn(FlowPreview::class)
     private fun observeSearch() {
-        viewModelScope.launch {
-            searchQuery
-                .debounce(500)
-                .distinctUntilChanged()
-                .collectLatest { query ->
-                    fetchMovies(query)
-                }
-        }
+        searchQuery
+            .debounce(500)
+            .distinctUntilChanged()
+            .onEach { query ->
+                fetchMovies(query)
+            }
+            .launchIn(viewModelScope)
     }
 
     private suspend fun fetchMovies(query: String) {
