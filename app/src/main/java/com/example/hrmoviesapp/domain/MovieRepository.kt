@@ -4,9 +4,14 @@ import com.example.hrmoviesapp.data.MovieData
 import com.example.hrmoviesapp.presentation.DefaultMovies
 
 class MovieRepository(private val api: MovieApi) {
-    suspend fun fetchMovies(): List<MovieData> {
+    suspend fun getMovies(query: String): List<MovieData> {
         return try {
-            val response = api.fetchMovies().movieData
+            val response =
+                if (query.isBlank())
+                    api.fetchMovies().movieData
+                else
+                    api.searchMovies(query).movieData
+
             response.ifEmpty {
                 DefaultMovies.list
             }

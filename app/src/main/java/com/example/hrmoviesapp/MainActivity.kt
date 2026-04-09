@@ -8,9 +8,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.hrmoviesapp.domain.AppModule
 import com.example.hrmoviesapp.domain.MovieUiState
 import com.example.hrmoviesapp.domain.MovieViewModelFactory
@@ -30,11 +30,11 @@ class MainActivity : ComponentActivity() {
         setContent {
             HRMoviesAppTheme {
 
-                val uiState by viewModel.uiState.collectAsState()
+                val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
                 Scaffold(modifier = Modifier.fillMaxSize()) { padding ->
 
-                    when (uiState) {
+                    when (val state = uiState) {
 
                         is MovieUiState.Loading -> {
                             Text("Loading...", modifier = Modifier.padding(padding))
@@ -42,14 +42,15 @@ class MainActivity : ComponentActivity() {
 
                         is MovieUiState.Success -> {
                             MovieScreen(
-                                moviePages = (uiState as MovieUiState.Success).movies,
+                                moviePages = state.movies,
+                                onSearch = viewModel::onSearchQueryChanged,
                                 modifier = Modifier.padding(padding)
                             )
                         }
 
                         is MovieUiState.Error -> {
                             Text(
-                                (uiState as MovieUiState.Error).message,
+                                state.message,
                                 modifier = Modifier.padding(padding)
                             )
                         }
