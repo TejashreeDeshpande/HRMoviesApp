@@ -31,6 +31,7 @@ class MainActivity : ComponentActivity() {
             HRMoviesAppTheme {
 
                 val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+                val searchText by viewModel.searchText.collectAsStateWithLifecycle()
 
                 Scaffold(modifier = Modifier.fillMaxSize()) { padding ->
 
@@ -43,6 +44,8 @@ class MainActivity : ComponentActivity() {
                         is MovieUiState.Success -> {
                             MovieScreen(
                                 moviePages = state.movies,
+                                searchText = searchText,
+                                onSearchTextChange = viewModel::updateSearchText,
                                 onSearch = viewModel::onSearchQueryChanged,
                                 modifier = Modifier.padding(padding)
                             )

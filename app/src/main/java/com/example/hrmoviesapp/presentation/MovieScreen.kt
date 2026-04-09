@@ -5,7 +5,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.hrmoviesapp.data.MovieData
@@ -13,10 +14,11 @@ import com.example.hrmoviesapp.data.MovieData
 @Composable
 fun MovieScreen(
     moviePages: List<MovieData>,
-    onSearch: (String) -> Unit,
+    searchText: String,
+    onSearchTextChange: (String) -> Unit,
+    onSearch: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var text by rememberSaveable { mutableStateOf("") }
 
     Column(
         modifier = modifier
@@ -24,24 +26,37 @@ fun MovieScreen(
             .padding(8.dp)
     ) {
 
-        // 🔍 Search Row (TextField + Button)
+        // Search Row (TextField + Button)
         Row(
             modifier = Modifier.fillMaxWidth()
         ) {
 
             TextField(
-                value = text,
-                onValueChange = { text = it },
+                value = searchText,
+                onValueChange = onSearchTextChange,
                 modifier = Modifier
                     .weight(1f)
                     .padding(end = 8.dp),
-                placeholder = { Text("Search movies") }
+                placeholder = { Text("Search movies") },
+                trailingIcon = {
+                    if (searchText.isNotEmpty()) {
+                        IconButton(
+                            onClick = {
+                                onSearchTextChange("")
+                                onSearch()
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Clear search"
+                            )
+                        }
+                    }
+                }
             )
 
             Button(
-                onClick = {
-                    onSearch(text.trim()) // trim removes leading/trailing spaces
-                }
+                onClick = onSearch
             ) {
                 Text("Search")
             }
@@ -49,7 +64,7 @@ fun MovieScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // 🎬 Movie List
+        // Movie List
         LazyColumn(
             modifier = Modifier.fillMaxSize()
         ) {

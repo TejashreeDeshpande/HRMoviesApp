@@ -68,4 +68,6 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
     // Ensure you also have the core OkHttp (though Retrofit usually pulls it in)
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
+    implementation("androidx.compose.material:material-icons-extended")
 }

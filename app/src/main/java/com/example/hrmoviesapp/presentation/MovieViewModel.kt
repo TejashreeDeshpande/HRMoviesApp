@@ -5,19 +5,14 @@ import androidx.lifecycle.viewModelScope
 import com.example.hrmoviesapp.domain.MovieRepository
 import com.example.hrmoviesapp.domain.MovieUiState
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class MovieViewModel(
     private val repository: MovieRepository
 ) : ViewModel() {
+    private val _searchText = MutableStateFlow("")
+    val searchText: StateFlow<String> = _searchText
 
     private val searchQuery = MutableStateFlow("")
 
@@ -26,14 +21,16 @@ class MovieViewModel(
 
     init {
         observeSearch()
+
         searchQuery.update { "" }
-//        viewModelScope.launch {
-//            fetchMovies("")
-//        }
     }
 
-    fun onSearchQueryChanged(query: String) {
-        searchQuery.update { query }
+    fun onSearchQueryChanged() {
+        searchQuery.value = _searchText.value
+    }
+
+    fun updateSearchText(text: String) {
+        _searchText.value = text
     }
 
     @OptIn(FlowPreview::class)
@@ -47,21 +44,24 @@ class MovieViewModel(
             .launchIn(viewModelScope)
     }
 
-    private suspend fun fetchMovies(query: String) {
-        _uiState.value = MovieUiState.Loading
+    private fun fetchMovies(query: String) {
+        viewModelScope.launch {
 
-        try {
-            val movies = repository.getMovies(query)
+            _uiState.value = MovieUiState.Loading
 
-            _uiState.value = when {
-                movies.isEmpty() -> MovieUiState.Empty
-                else -> MovieUiState.Success(movies)
+            try {
+                val movies = repository.getMovies(query)
+
+                _uiState.value = when {
+                    movies.isEmpty() -> MovieUiState.Empty
+                    else -> MovieUiState.Success(movies)
+                }
+
+            } catch (e: Exception) {
+                _uiState.value = MovieUiState.Error(
+                    e.message ?: "Failed to load movies"
+                )
             }
-
-        } catch (e: Exception) {
-            _uiState.value = MovieUiState.Error(
-                e.message ?: "Failed to load movies"
-            )
         }
     }
 }
